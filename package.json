@@ -1,0 +1,97 @@
+{
+  "name": "local-llm-assistant",
+  "displayName": "Local LLM Assistant",
+  "description": "Use a local LLM for code autocompletion, refactoring, and commenting.",
+  "version": "0.0.1",
+  "publisher": "Jobin Jose",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "icon": "media/icon.png",
+  "main": "./dist/extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "localLLM",
+          "title": "Local LLM",
+          "icon": "media/icon.png"
+        }
+      ]
+    },
+    "views": {
+      "localLLM": [
+        {
+          "type": "webview",
+          "id": "localLLMSettingsView",
+          "name": "LLM Settings",
+          "icon": "media/icon.png"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "localLLM.refactorCode",
+        "title": "LLM: Refactor Selected Code"
+      },
+      {
+        "command": "localLLM.commentCode",
+        "title": "LLM: Comment Selected Code"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "localLLM.refactorCode",
+          "when": "editorHasSelection",
+          "group": "navigation@1"
+        },
+        {
+          "command": "localLLM.commentCode",
+          "when": "editorHasSelection",
+          "group": "navigation@2"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Local LLM Assistant",
+      "properties": {
+        "localLLM.url": {
+          "type": "string",
+          "default": "http://localhost:11434/api/generate",
+          "description": "LLM API URL",
+          "scope": "application"
+        },
+        "localLLM.token": {
+          "type": "string",
+          "default": "",
+          "description": "Authorization token for the LLM",
+          "scope": "application"
+        },
+        "localLLM.model": {
+          "type": "string",
+          "default": "qwen:7b",
+          "description": "Model name",
+          "scope": "application"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "node build.js",
+    "build": "npm run compile && vsce package"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "esbuild": "^0.25.2",
+    "typescript": "^5.3.0"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "vsce": "^2.15.0"
+  }
+}
