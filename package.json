@@ -2,6 +2,10 @@
   "name": "local-llm-assistant",
   "displayName": "Local LLM Assistant",
   "description": "Use a local LLM for code autocompletion, refactoring, and commenting.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Jobinjose01/codebuddy.git"
+  },
   "version": "0.0.1",
   "publisher": "Jobin Jose",
   "engines": {

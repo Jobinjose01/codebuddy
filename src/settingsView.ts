@@ -99,7 +99,7 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
           }
           textarea,
           input[type="text"] {
-            width: 100%;
+            width: 90%;
             padding: 6px;
             border: 1px solid var(--vscode-input-border);
             background-color: var(--vscode-input-background);
@@ -142,7 +142,7 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
           <button onclick="save()">Save</button>
         </div>
   
-        <div id="chat" class="tab-content active>
+        <div id="chat" class="tab-content active">
           <div id="responseBox"></div>
           <label>Ask me anything:</label><br/>
           <textarea id="prompt"></textarea><br/>
