@@ -1,43 +1,16 @@
 import * as vscode from 'vscode';
-import axios from 'axios';
+import { queryLLM } from './utils/queryLLM';
+import { formatLLMResponse } from './utils/formatLLMResponse';
 
 export class SettingsViewProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = 'localLLMSettingsView';
 
   constructor(private readonly context: vscode.ExtensionContext) {}
 
-  private async queryLLM(mode: string, content: string): Promise<string> {
-    const config = vscode.workspace.getConfiguration('localLLM');
-    const url = config.get<string>('url');
-    const token = config.get<string>('token');
-    const model = config.get<string>('model');
-  
-    try {
-      const res = await axios.post(
-        url!,
-        {
-          prompt: `${mode.toUpperCase()}:\n${content}`,
-          model: model,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      return res.data.choices?.[0]?.text?.trim() || '';
-    } catch (err: any) {
-      vscode.window.showErrorMessage(`LLM Error: ${err.message}`);
-      return 'Error: ' + err.message;
-    }
-  }
-  
-   resolveWebviewView(
-    webviewView: vscode.WebviewView
-  ) {
+  resolveWebviewView(webviewView: vscode.WebviewView) {
     webviewView.webview.options = {
-      enableScripts: true
+      enableScripts: true,
     };
-
-   
 
     const config = vscode.workspace.getConfiguration('localLLM');
     const savedUrl = config.get('url', '');
@@ -53,19 +26,17 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
         await config.update('model', message.model, vscode.ConfigurationTarget.Global);
         vscode.window.showInformationMessage('LLM settings saved!');
       }
-    
+
       if (message.command === 'sendPrompt') {
-        const response = await this.queryLLM('chat', message.prompt);
+        const response = await queryLLM({ type: 'ask', content: message.prompt });
         webviewView.webview.postMessage({
           command: 'showResponse',
-          response: response
+          response: formatLLMResponse(response),
         });
       }
     });
-    
-  } 
-    
-    
+  }
+
   private getHtml(url: string, token: string, model: string): string {
     return `
       <html>
@@ -115,14 +86,66 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
             cursor: pointer;
             border-radius: 4px;
           }
-          #responseBox {
-            margin-top: 10px;
-            padding: 10px;
-            border: 1px solid var(--vscode-panel-border);
-            background: var(--vscode-editor-background);
-            color: var(--vscode-foreground);
-            border-radius: 4px;
+
+          .response-block code,
+          .response-block pre {
+            font-family: var(--vscode-editor-font-family, monospace);
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: var(--vscode-editor-foreground);
           }
+
+          .code-container {
+            position: relative;
+            margin: 12px 0;
+            background-color: #1e1e1e;
+            border-radius: 6px;
+            overflow: hidden;
+          }
+
+          .code-container pre {
+            margin: 0;
+            padding: 12px;
+            color: #d4d4d4;
+            font-size: 13px;
+            background: #1e1e1e;
+            white-space: pre-wrap;
+          }
+
+          .copy-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #2d2d2d;
+            border: none;
+            color: #ccc;
+            font-size: 14px;
+            padding: 4px 6px;
+            border-radius: 4px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out;
+          }
+
+          .code-container:hover .copy-btn {
+            opacity: 1;
+          }
+
+          #responseWrapper {
+            margin-top: 12px;
+            font-size: 14px;
+          }
+          pre code {
+            display: block;
+            background-color: #1e1e1e;
+            color: #dcdcdc;
+            padding: 1em;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+          }
+
         </style>
       </head>
       <body>
@@ -131,7 +154,7 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
           <div class="tab-btn active" data-tab="chat">Chat</div>
           <div class="tab-btn" data-tab="settings">Settings</div>
         </div>
-  
+
         <div id="settings" class="tab-content">
           <label>URL:</label><br/>
           <input type="text" id="url" value="${url}"/><br/><br/>
@@ -141,17 +164,20 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
           <input type="text" id="model" value="${model}"/><br/><br/>
           <button onclick="save()">Save</button>
         </div>
-  
+
         <div id="chat" class="tab-content active">
-          <div id="responseBox"></div>
+          <div id="responseWrapper">
+            <div id="responseBox" class="response-block"></div>
+          </div>
+
           <label>Ask me anything:</label><br/>
           <textarea id="prompt"></textarea><br/>
           <button onclick="send()">Send</button>
         </div>
-  
+
         <script>
           const vscode = acquireVsCodeApi();
-  
+
           document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => {
               document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -160,7 +186,7 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
               document.getElementById(btn.dataset.tab).classList.add('active');
             });
           });
-  
+
           function save() {
             vscode.postMessage({
               command: 'saveSettings',
@@ -169,7 +195,7 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
               model: document.getElementById('model').value,
             });
           }
-  
+
           function send() {
             const prompt = document.getElementById('prompt').value;
             vscode.postMessage({
@@ -177,11 +203,32 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
               prompt: prompt
             });
           }
-  
+
           window.addEventListener('message', event => {
             const message = event.data;
             if (message.command === 'showResponse') {
-              document.getElementById('responseBox').innerText = message.response;
+              const responseBox = document.getElementById('responseBox');
+              responseBox.innerHTML = message.response;
+
+              // Add copy button to each code block
+              const codeBlocks = responseBox.querySelectorAll('pre');
+              codeBlocks.forEach(pre => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'code-container';
+
+                const button = document.createElement('button');
+                button.className = 'copy-btn';
+                button.innerText = '📋';
+                button.addEventListener('click', () => {
+                  navigator.clipboard.writeText(pre.innerText);
+                  button.innerText = '✅';
+                  setTimeout(() => button.innerText = '📋', 1000);
+                });
+
+                pre.parentNode?.insertBefore(wrapper, pre);
+                wrapper.appendChild(button);
+                wrapper.appendChild(pre);
+              });
             }
           });
         </script>
@@ -189,6 +236,4 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
       </html>
     `;
   }
-  
-  
 }
