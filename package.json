@@ -14,6 +14,28 @@
   "categories": [
     "Other"
   ],
+ "author": {
+    "name": "Jobin Jose",
+    "email": "jobinjose01@gmail.com",
+    "url": "https://github.com/Jobinjose01"
+  },
+  "bugs": {
+    "url": "https://github.com/Jobinjose01/codebuddy/issues"
+  },
+  "homepage": "https://github.com/Jobinjose01/codebuddy#readme",
+  "license": "MIT",
+  "keywords": [
+    "ai",
+    "assistant",
+    "llm",
+    "autocomplete",
+    "refactor",
+    "comment",
+    "codewithme",
+    "code assitsant",
+    "copilot",
+    "vscode-extension"
+  ],
   "icon": "media/icon.png",
   "main": "./dist/extension.js",
   "activationEvents": [],
