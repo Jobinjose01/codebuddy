@@ -58,4 +58,38 @@ export function formatLLMResponse(rawText: string): string {
       }[char]!)
     );
   }
+
+  export function formatAutoCompleteResponse(rawText: string, currentLine: string): string {
+    const match = rawText.match(/```[a-z]*\n([\s\S]*?)```/i);
+    const code = (match?.[1] || rawText).trim();
+  
+    // Find the longest suffix of currentLine that matches the prefix of the response
+    let overlapIndex = 0;
+    for (let i = 0; i < currentLine.length; i++) {
+      const suffix = currentLine.slice(i);
+      if (code.toLowerCase().startsWith(suffix.toLowerCase())) {
+        overlapIndex = suffix.length;
+        break;
+      }
+    }
+  
+    return code.slice(overlapIndex).trimStart();
+  }
+
+  export function formatCommentResponse(rawText: string): string {
+    return rawText
+      .replace(/^```[\w-]*\s*/i, '')  // remove ``` and optional language (like ts, js)
+      .replace(/```$/, '')           // remove trailing ```
+      .trim();                       // remove any leading/trailing whitespace
+  }
+
+  export function formatReactorResponse(raw: string): string {
+    return raw
+      .replace(/```[\s\S]*?(\n)?/g, '') // remove ```language or ``` on own lines
+      .trim();
+  }
+  
+  
+  
+  
   

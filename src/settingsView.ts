@@ -3,7 +3,7 @@ import { queryLLM } from './utils/queryLLM';
 import { formatLLMResponse } from './utils/formatLLMResponse';
 
 export class SettingsViewProvider implements vscode.WebviewViewProvider {
-  public static readonly viewType = 'localLLMSettingsView';
+  public static readonly viewType = 'CodeWithMeLLMSettingsView';
 
   constructor(private readonly context: vscode.ExtensionContext) {}
 
@@ -24,7 +24,7 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
         await config.update('url', message.url, vscode.ConfigurationTarget.Global);
         await config.update('token', message.token, vscode.ConfigurationTarget.Global);
         await config.update('model', message.model, vscode.ConfigurationTarget.Global);
-        vscode.window.showInformationMessage('LLM settings saved!');
+        vscode.window.showInformationMessage('CodeWithMe settings saved!');
       }
 
       if (message.command === 'sendPrompt') {
@@ -149,7 +149,7 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
         </style>
       </head>
       <body>
-        <h3>Local LLM Assistant</h3>
+        <h3>CodeWithMe: AI Assistant</h3>
         <div class="tab">
           <div class="tab-btn active" data-tab="chat">Chat</div>
           <div class="tab-btn" data-tab="settings">Settings</div>

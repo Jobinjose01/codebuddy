@@ -14,9 +14,16 @@ const API_URL = config.get<string>('url') + '/api/chat/completions';
 const API_TOKEN = config.get<string>('token');
 
 const systemPrompts: Record<LLMRequestOptions['type'], string> = {
-  autocomplete: "You are an intelligent coding assistant. Complete the given code snippet **without explanation** or formatting.",
-  comment: "You are an intelligent coding assistant. Add helpful comments to the code snippet without changing the logic.",
-  refactor: "You are an intelligent coding assistant. Refactor the given code to be cleaner and more efficient without changing its behavior.",
+  autocomplete: `You are an intelligent code completion engine. Given a partial line of code, return only the most likely code completion for the current programming language. 
+Respond with raw code only, with no explanation, comments, or extra formatting. Do not include code blocks, markdown, or descriptions.
+Always infer the programming language based on the given code snippet and return an accurate continuation.
+`,
+  comment: `You are an intelligent coding assistant. Add concise inline comments to the following code to explain what it does.
+Do not modify the logic, structure, or formatting.
+Do not include any explanations, markdown formatting, or text outside the code.
+Just return the raw code with comments.`,
+  refactor: `You are an intelligent coding assistant. Refactor the given code to be cleaner and more efficient without changing its behavior.
+Return only the refactored code without any explanations, comments, or code block formatting.`,
   ask: "You are a coding expert. Answer the following question in a clear and concise manner.",
 };
 
@@ -47,12 +54,12 @@ export async function queryLLM({
     if(API_URL != undefined && content != undefined){
         
         // ✅ DEBUG LOGGING
-        console.log('📡 Axios Request Debug:');
-        console.log('➡️ URL:', API_URL);
-        console.log('➡️ Headers:', headers);
+        //console.log('📡 Axios Request Debug:');
+        //console.log('➡️ URL:', API_URL);
+        //console.log('➡️ Headers:', headers);
         console.log('➡️ Payload:', JSON.stringify(payload, null, 2));
         const res = await axios.post(API_URL, payload, { headers });
-
+        console.log(res.data.choices?.[0]?.message?.content?.trim() || '');
         return res.data.choices?.[0]?.message?.content?.trim() || '';
     }else{
         return '';

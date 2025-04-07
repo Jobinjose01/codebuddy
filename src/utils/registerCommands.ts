@@ -1,7 +1,6 @@
-// src/utils/registerCommands.ts
-
 import * as vscode from 'vscode';
 import { queryLLM } from './queryLLM';
+import { formatAutoCompleteResponse, formatCommentResponse, formatReactorResponse } from './formatLLMResponse';
 
 
 
@@ -18,8 +17,9 @@ export function registerLLMCommands(context: vscode.ExtensionContext) {
         content: text,
       });
 
+      const formattedResult = (type == 'comment') ? formatCommentResponse(result) : formatReactorResponse(result);
       editor.edit(editBuilder => {
-        editBuilder.replace(selection, result);
+        editBuilder.replace(selection, formattedResult);
       });
     });
 
@@ -29,24 +29,45 @@ export function registerLLMCommands(context: vscode.ExtensionContext) {
   registerCommand('localLLM.refactorCode', 'refactor');
   registerCommand('localLLM.commentCode', 'comment');
 
+  let debounceTimeout: ReturnType<typeof setTimeout> | undefined;
+  let pendingResolve: ((result: vscode.InlineCompletionList) => void) | null = null;
   // Inline completion
   const inlineProvider = vscode.languages.registerInlineCompletionItemProvider({ pattern: '**' }, {
-    async provideInlineCompletionItems(document, position) {
-      const linePrefix = document.lineAt(position).text.substring(0, position.character);
-
-      const response = await queryLLM({
-        type: 'autocomplete',
-        content: linePrefix,
+    provideInlineCompletionItems(document, position) {
+      return new Promise((resolve) => {  // << you must return this
+        if (debounceTimeout) clearTimeout(debounceTimeout);
+  
+        debounceTimeout = setTimeout(async () => {
+          const currentLine = document.lineAt(position.line).text.substring(0, position.character);
+          if (!currentLine.trim()) {
+            resolve({ items: [] });
+            return;
+          }
+  
+          const language = document.languageId;
+  
+          const response = await queryLLM({
+            type: 'autocomplete',
+            content: `Programming Language: ${language}\n${currentLine}`,
+          });
+  
+          const insertText = formatAutoCompleteResponse(response,currentLine).trim();
+  
+          if (!insertText) {
+            resolve({ items: [] });
+            return;
+          }
+  
+          resolve({
+            items: [
+              {
+                insertText,
+                range: new vscode.Range(position, position),
+              },
+            ],
+          });
+        }, 300);
       });
-
-      return {
-        items: [
-          {
-            insertText: response,
-            range: new vscode.Range(position, position),
-          },
-        ],
-      };
     },
   });
 

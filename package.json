@@ -1,7 +1,7 @@
 {
-  "name": "local-llm-assistant",
-  "displayName": "Local LLM Assistant",
-  "description": "Use a local LLM for code autocompletion, refactoring, and commenting.",
+  "name": "codewithme",
+  "displayName": "CodeWithMe: AI Assistant",
+  "description": "Use LLM for code autocompletion, refactoring, and commenting.",
   "repository": {
     "type": "git",
     "url": "https://github.com/Jobinjose01/codebuddy.git"
@@ -21,48 +21,49 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "localLLM",
-          "title": "Local LLM",
+          "id": "CodeWithMe",
+          "title": "CodeWithMe",
           "icon": "media/icon.png"
         }
       ]
     },
     "views": {
-      "localLLM": [
+      "CodeWithMe": [
         {
           "type": "webview",
-          "id": "localLLMSettingsView",
-          "name": "LLM Settings",
+          "id": "CodeWithMeLLMSettingsView",
+          "name": "Settings",
           "icon": "media/icon.png"
         }
       ]
     },
     "commands": [
       {
-        "command": "localLLM.refactorCode",
-        "title": "LLM: Refactor Selected Code"
+        "command": "CodeWithMe.refactorCode",
+        "title": "CodeWithMe: Refactor Code"
       },
       {
-        "command": "localLLM.commentCode",
-        "title": "LLM: Comment Selected Code"
+        "command": "CodeWithMe.commentCode",
+        "title": "CodeWithMe: Comment Code"
       }
     ],
     "menus": {
       "editor/context": [
         {
-          "command": "localLLM.refactorCode",
+          "command": "CodeWithMe.refactorCode",
           "when": "editorHasSelection",
-          "group": "navigation@1"
+          "group": "codewithme@1"
         },
         {
-          "command": "localLLM.commentCode",
+          "command": "CodeWithMe.commentCode",
           "when": "editorHasSelection",
-          "group": "navigation@2"
+          "group": "codewithme@2"
         }
       ]
-    },
+    }
+    ,
     "configuration": {
-      "title": "Local LLM Assistant",
+      "title": "CodeWithMe: AI Assistant",
       "properties": {
         "localLLM.url": {
           "type": "string",
