@@ -87,22 +87,28 @@
     "configuration": {
       "title": "CodeWithMe: AI Assistant",
       "properties": {
-        "localLLM.url": {
+        "CodeWithMe.url": {
           "type": "string",
           "default": "http://localhost:11434/api/generate",
           "description": "LLM API URL",
           "scope": "application"
         },
-        "localLLM.token": {
+        "CodeWithMe.token": {
           "type": "string",
           "default": "",
           "description": "Authorization token for the LLM",
           "scope": "application"
         },
-        "localLLM.model": {
+        "CodeWithMe.model": {
           "type": "string",
           "default": "qwen:7b",
           "description": "Model name",
+          "scope": "application"
+        },
+        "CodeWithMe.provider": {
+          "type": "string",
+          "default": "",
+          "description": "Proivder",
           "scope": "application"
         }
       }

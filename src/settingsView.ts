@@ -12,18 +12,20 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
       enableScripts: true,
     };
 
-    const config = vscode.workspace.getConfiguration('localLLM');
+    const config = vscode.workspace.getConfiguration('CodeWithMe');
     const savedUrl = config.get('url', '');
     const savedToken = config.get('token', '');
     const savedModel = config.get('model', '');
+    const savedProvider = config.get('provider', '');
 
-    webviewView.webview.html = this.getHtml(savedUrl, savedToken, savedModel);
+    webviewView.webview.html = this.getHtml(savedUrl, savedToken, savedModel,savedProvider);
 
     webviewView.webview.onDidReceiveMessage(async (message) => {
       if (message.command === 'saveSettings') {
         await config.update('url', message.url, vscode.ConfigurationTarget.Global);
         await config.update('token', message.token, vscode.ConfigurationTarget.Global);
         await config.update('model', message.model, vscode.ConfigurationTarget.Global);
+        await config.update('provider', message.provider, vscode.ConfigurationTarget.Global);
         vscode.window.showInformationMessage('CodeWithMe settings saved!');
       }
 
@@ -37,7 +39,7 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
     });
   }
 
-  private getHtml(url: string, token: string, model: string): string {
+  private getHtml(url: string, token: string, model: string,provider:string): string {
     return `
       <html>
       <head>
@@ -69,6 +71,7 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
             display: block;
           }
           textarea,
+          select,
           input[type="text"] {
             width: 90%;
             padding: 6px;
@@ -76,7 +79,7 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
             background-color: var(--vscode-input-background);
             color: var(--vscode-input-foreground);
             border-radius: 4px;
-          }
+          }          
           button {
             margin-top: 5px;
             padding: 8px 16px;
@@ -156,12 +159,16 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
         </div>
 
         <div id="settings" class="tab-content">
-          <label>URL:</label><br/>
-          <input type="text" id="url" value="${url}"/><br/><br/>
-          <label>Token:</label><br/>
-          <input type="text" id="token" value="${token}"/><br/><br/>
-          <label>Model:</label><br/>
-          <input type="text" id="model" value="${model}"/><br/><br/>
+          <select name="provider" id="provider">
+            <option value="">Choose Provider</option>
+            <option value="openwebui">OpenWebUI</option>
+            <option value="ollama">Ollama</option>
+          </select>
+          <br/><br/>          
+          <input type="text" id="url" value="${url}" placeholder="API URL"/><br/><br/>
+          <input type="text" id="token" value="${token}" placeholder="API KEY" />            
+          <br/><br/>
+          <input type="text" id="model" value="${model}" placeholder="Model Name"/><br/><br/>
           <button onclick="save()">Save</button>
         </div>
 
@@ -170,8 +177,8 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
             <div id="responseBox" class="response-block"></div>
           </div>
 
-          <label>Ask me anything:</label><br/>
-          <textarea id="prompt"></textarea><br/>
+          <br/>
+          <textarea id="prompt" placeholder="Ask me anything" rows="10"></textarea><br/>
           <button onclick="send()">Send</button>
         </div>
 
@@ -185,6 +192,12 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
               document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
               document.getElementById(btn.dataset.tab).classList.add('active');
             });
+          });          
+          window.addEventListener('DOMContentLoaded', () => {
+            const savedProvider = "${provider}";
+            if (savedProvider) {
+              document.getElementById('provider').value = savedProvider;
+            }
           });
 
           function save() {
@@ -193,6 +206,7 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
               url: document.getElementById('url').value,
               token: document.getElementById('token').value,
               model: document.getElementById('model').value,
+              provider: document.getElementById('provider').value,
             });
           }
 

@@ -8,10 +8,11 @@ interface LLMRequestOptions {
   max_tokens?: number;
 }
 
-const config = vscode.workspace.getConfiguration('localLLM');
+const config = vscode.workspace.getConfiguration('CodeWithMe');
 const MODEL = config.get<string>('model');
-const API_URL = config.get<string>('url') + '/api/chat/completions';
+const API_URL = config.get<string>('url');
 const API_TOKEN = config.get<string>('token');
+const provider = config.get<string>('provider');
 
 const systemPrompts: Record<LLMRequestOptions['type'], string> = {
   autocomplete: `You are an intelligent code completion engine. Given a partial line of code, return only the most likely code completion for the current programming language. 
@@ -53,12 +54,23 @@ export async function queryLLM({
 
     if(API_URL != undefined && content != undefined){
         
+        let apiEndPoint = API_URL;
+        switch(provider){
+          case 'openwebui':
+              apiEndPoint = apiEndPoint + '/api/chat/completions';
+                     
+          case 'ollama':
+              apiEndPoint = apiEndPoint + '/api/generate';
+                      
+          default:
+              apiEndPoint = apiEndPoint + '/api/chat/completions';
+        }
         // ✅ DEBUG LOGGING
         //console.log('📡 Axios Request Debug:');
         //console.log('➡️ URL:', API_URL);
         //console.log('➡️ Headers:', headers);
         console.log('➡️ Payload:', JSON.stringify(payload, null, 2));
-        const res = await axios.post(API_URL, payload, { headers });
+        const res = await axios.post(apiEndPoint, payload, { headers });
         console.log(res.data.choices?.[0]?.message?.content?.trim() || '');
         return res.data.choices?.[0]?.message?.content?.trim() || '';
     }else{
