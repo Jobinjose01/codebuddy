@@ -1,6 +1,4 @@
 import * as vscode from 'vscode';
-import axios from 'axios';
-import { queryLLM } from './utils/queryLLM';
 import { SettingsViewProvider } from './settingsView';
 import { registerLLMCommands } from './utils/registerCommands';
 
