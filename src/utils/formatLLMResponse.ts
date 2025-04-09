@@ -59,22 +59,83 @@ export function formatLLMResponse(rawText: string): string {
     );
   }
 
-  export function formatAutoCompleteResponse(rawText: string, currentLine: string): string {
+ /*  export function formatAutoCompleteResponse(rawText: string, currentLine: string): string {
     const match = rawText.match(/```[a-z]*\n([\s\S]*?)```/i);
-    const code = (match?.[1] || rawText).trim();
+    const code = (match?.[1] || rawText);
   
-    // Find the longest suffix of currentLine that matches the prefix of the response
     let overlapIndex = 0;
     for (let i = 0; i < currentLine.length; i++) {
       const suffix = currentLine.slice(i);
-      if (code.toLowerCase().startsWith(suffix.toLowerCase())) {
+      if (code.startsWith(suffix)) {
         overlapIndex = suffix.length;
         break;
       }
     }
   
-    return code.slice(overlapIndex).trimStart();
-  }
+    const remaining = code.slice(overlapIndex);
+  
+    // 🔥 Smart spacing logic
+    const needsSpace =
+      currentLine.length > 0 &&
+      !/\s$/.test(currentLine) && // current line doesn't end with space
+      /^[^\s]/.test(remaining);  // remaining suggestion doesn't start with space
+  
+    return (needsSpace ? ' ' : '') + remaining;
+  } */
+  
+    export function formatAutoCompleteResponse(
+      rawText: string,
+      currentLine: string,
+      suffix: string
+    ): string | undefined {
+      const match = rawText.match(/```[a-z]*\n([\s\S]*?)```/i);
+      let completion = match?.[1] || rawText;
+    
+      // Clean up leading/trailing newlines
+      completion = completion.trim();
+    
+      // 1. Remove prefix already typed
+      const trimmedLine = currentLine.trim();
+      if (completion.startsWith(trimmedLine)) {
+        completion = completion.slice(trimmedLine.length);
+      }
+    
+      // 2. Remove overlap with suffix
+      if (suffix && completion.endsWith(suffix)) {
+        completion = completion.slice(0, -suffix.length);
+      }
+    
+      // 3. Smart overlap removal with currentLine (even partial word)
+      for (let i = 0; i < currentLine.length; i++) {
+        const overlap = currentLine.slice(i);
+        if (completion.startsWith(overlap)) {
+          completion = completion.slice(overlap.length);
+          break;
+        }
+      }
+    
+      // 4. Fix spacing logic (smartly add a space only if needed)
+      const endsWithWordChar = /[a-zA-Z0-9_]$/.test(currentLine);
+      const startsWithWordChar = /^[a-zA-Z0-9_]/.test(completion);
+      if (endsWithWordChar && startsWithWordChar) {
+        completion = ' ' + completion;
+      }
+    
+      // 5. Trim again
+      completion = completion.trimStart();
+    
+      // 6. Don't return just whitespace
+      if (!completion || completion.trim() === '') {
+        return undefined;
+      }
+    
+      return completion;
+    }
+    
+    
+    
+    
+  
 
   export function formatCommentResponse(rawText: string): string {
     return rawText
