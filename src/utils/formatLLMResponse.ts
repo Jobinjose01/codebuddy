@@ -59,31 +59,7 @@ export function formatLLMResponse(rawText: string): string {
     );
   }
 
- /*  export function formatAutoCompleteResponse(rawText: string, currentLine: string): string {
-    const match = rawText.match(/```[a-z]*\n([\s\S]*?)```/i);
-    const code = (match?.[1] || rawText);
-  
-    let overlapIndex = 0;
-    for (let i = 0; i < currentLine.length; i++) {
-      const suffix = currentLine.slice(i);
-      if (code.startsWith(suffix)) {
-        overlapIndex = suffix.length;
-        break;
-      }
-    }
-  
-    const remaining = code.slice(overlapIndex);
-  
-    // 🔥 Smart spacing logic
-    const needsSpace =
-      currentLine.length > 0 &&
-      !/\s$/.test(currentLine) && // current line doesn't end with space
-      /^[^\s]/.test(remaining);  // remaining suggestion doesn't start with space
-  
-    return (needsSpace ? ' ' : '') + remaining;
-  } */
-  
-    export function formatAutoCompleteResponse(
+     export function formatAutoCompleteResponse(
       rawText: string,
       currentLine: string,
       suffix: string
