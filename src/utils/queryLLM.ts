@@ -1,5 +1,7 @@
 import axios from 'axios';
 import * as vscode from 'vscode';
+import { parseLLMResponseProviderLevel, preparePayloadProviderLevel } from './providerLevelHandler';
+import { payloadDTO } from '../dto/payloadDTO';
 
 interface LLMRequestOptions {
   type: 'autocomplete' | 'comment' | 'refactor' | 'ask';
@@ -8,12 +10,6 @@ interface LLMRequestOptions {
   max_tokens?: number;
 }
 
-const config = vscode.workspace.getConfiguration('CodeWithMe');
-const MODEL = config.get<string>('model');
-const API_URL = config.get<string>('url');
-const API_TOKEN = config.get<string>('token');
-const provider = config.get<string>('provider');
-let payload;
 
 const systemPrompts: Record<LLMRequestOptions['type'], string> = {
   autocomplete: `You are an intelligent code completion engine. Given a partial line of code, return only the most likely code completion for the current programming language. 
@@ -38,7 +34,11 @@ export async function queryLLM({
   try {
     const systemPrompt = systemPrompts[type];
 
-    
+    const config = vscode.workspace.getConfiguration('CodeWithMe');
+    const MODEL = config.get<string>('model');
+    const API_URL = config.get<string>('url');
+    const API_TOKEN = config.get<string>('token');
+    const provider = config.get<string>('provider');
 
     const headers = {
         Authorization: API_TOKEN ? `Bearer ${API_TOKEN}` : '',
@@ -47,56 +47,22 @@ export async function queryLLM({
 
     if(API_URL != undefined && content != undefined){
         
-        let apiEndPoint = API_URL;
-        switch(provider){
-          case 'openwebui':
-
-              payload = {
-                model:MODEL,
-                messages: [
-                  { role: 'system', content: systemPrompt },
-                  { role: 'user', content },
-                ],
-                temperature,
-                max_tokens,
-              };
-
-              apiEndPoint = apiEndPoint + '/api/chat/completions';
-              break;       
-          case 'ollama':
-              const prompt = `${systemPrompt}\n\nUser: ${content}`;
-
-              payload = {
-                model: MODEL,
-                prompt: prompt,
-                temperature,
-                max_tokens,
-                stream: false
-              };
-
-              apiEndPoint = apiEndPoint + '/api/generate';
-
-              break;        
-          default:
-              payload = {
-                model:MODEL,
-                messages: [
-                  { role: 'system', content: systemPrompt },
-                  { role: 'user', content },
-                ],
-                temperature,
-                max_tokens,
-              };
-
-              apiEndPoint = apiEndPoint + '/api/chat/completions';
-              break;
+        const payloadData : payloadDTO = {
+          model : MODEL,
+          provider,
+          systemPrompt,
+          content,
+          temperature,
+          max_tokens,
+          apiEndPoint : API_URL,
         }
+        const requestPayload = preparePayloadProviderLevel(payloadData);
         //✅ DEBUG LOGGING
         console.log('📡 Axios Request Debug:');
-        console.log('➡️ URL:', apiEndPoint);
+        console.log('➡️ URL:', requestPayload.apiEndPoint);
         console.log('➡️ Headers:', headers);
-        console.log('➡️ Payload:', JSON.stringify(payload, null, 2));
-        const res = await axios.post(apiEndPoint, payload, { headers });
+        console.log('➡️ Payload:', JSON.stringify(requestPayload.payload, null, 2));
+        const res = await axios.post(requestPayload.apiEndPoint, requestPayload.payload, { headers });
         return parseLLMResponseProviderLevel(provider,res);
     }else{
         return '';
@@ -118,24 +84,4 @@ export async function queryLLM({
     vscode.window.showErrorMessage(`LLM Error: ${err.message}`);
     return 'Error: ' + err.message;
   }
-}
-
-function parseLLMResponseProviderLevel(provider:string | undefined, res: any){
-
-  let responseContent : string;
-  switch(provider){
-    case 'openwebui':
-        console.log(res.data.choices?.[0]?.message?.content?.trim() || '');
-        responseContent  = res.data.choices?.[0]?.message?.content?.trim() || '';
-        break;       
-    case 'ollama':
-        console.log(res.data?.response || '');
-        responseContent  = res.data?.response?.trim() || '';
-        break;        
-    default:
-        console.log(res.data.choices?.[0]?.message?.content?.trim() || '');
-        responseContent  = res.data.choices?.[0]?.message?.content?.trim() || '';
-        break;
-  }
-  return responseContent;
 }

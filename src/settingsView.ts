@@ -163,6 +163,8 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
             <option value="">Choose Provider</option>
             <option value="openwebui">OpenWebUI</option>
             <option value="ollama">Ollama</option>
+            <option value="chatgpt">ChatGPT</option>
+            <option value="openrouter">OpenRouter</option>
           </select>
           <br/><br/>          
           <input type="text" id="url" value="${url}" placeholder="API URL"/><br/><br/>

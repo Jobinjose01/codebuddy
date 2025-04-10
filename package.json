@@ -108,7 +108,7 @@
         "CodeWithMe.provider": {
           "type": "string",
           "default": "",
-          "description": "Proivder",
+          "description": "Provider",
           "scope": "application"
         }
       }
