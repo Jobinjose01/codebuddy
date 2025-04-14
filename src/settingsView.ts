@@ -148,6 +148,41 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
             font-family: 'Courier New', monospace;
             font-size: 0.9em;
           }
+          .typing-dots {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            height: 24px;
+          }
+
+          .typing-dots span {
+            width: 6px;
+            height: 6px;
+            margin: 0 3px;
+            background-color: var(--vscode-editor-foreground);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: blink 1.4s infinite ease-in-out both;
+          }
+
+          .typing-dots span:nth-child(1) {
+            animation-delay: -0.32s;
+          }
+          .typing-dots span:nth-child(2) {
+            animation-delay: -0.16s;
+          }
+          .typing-dots span:nth-child(3) {
+            animation-delay: 0;
+          }
+
+          @keyframes blink {
+            0%, 80%, 100% {
+              opacity: 0.3;
+            }
+            40% {
+              opacity: 1;
+            }
+          }
 
         </style>
       </head>
@@ -177,6 +212,9 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
         <div id="chat" class="tab-content active">
           <div id="responseWrapper">
             <div id="responseBox" class="response-block"></div>
+            <div id="dotLoader" class="typing-dots" style="display: none;">
+              <span></span><span></span><span></span>
+            </div>
           </div>
 
           <br/>
@@ -214,6 +252,8 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
 
           function send() {
             const prompt = document.getElementById('prompt').value;
+            document.getElementById('responseBox').innerHTML = '';
+            document.getElementById('dotLoader').style.display = 'flex'; 
             vscode.postMessage({
               command: 'sendPrompt',
               prompt: prompt
@@ -223,6 +263,7 @@ export class SettingsViewProvider implements vscode.WebviewViewProvider {
           window.addEventListener('message', event => {
             const message = event.data;
             if (message.command === 'showResponse') {
+              document.getElementById('dotLoader').style.display = 'none';
               const responseBox = document.getElementById('responseBox');
               responseBox.innerHTML = message.response;
 
