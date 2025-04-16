@@ -12,7 +12,7 @@
     "vscode": "^1.85.0"
   },
   "categories": [
-    "Other"
+    "Programming Languages"
   ],
  "author": {
     "name": "Jobin Jose",
@@ -34,7 +34,11 @@
     "codewithme",
     "code assitsant",
     "copilot",
-    "vscode-extension"
+    "vscode-extension",
+    "openrouter",
+    "code autocomplete",
+    "Ollama",
+    "OpenWebUI"
   ],
   "icon": "media/icon.png",
   "main": "./dist/extension.js",
