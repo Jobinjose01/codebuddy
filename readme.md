@@ -1,4 +1,4 @@
-### Autocomplete Assistant for Large Langauge Models (LLMs)
+### Autocomplete Assistant for Large Language Models (LLMs)
 You can use this plugin for following LLMS
 * OpenWebUI
 * Ollama
