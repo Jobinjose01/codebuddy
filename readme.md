@@ -5,6 +5,10 @@ You can use this plugin for following LLMS
 * OpenRouter
 * ChatGPT
 
+### How it works
+![Demo](./media/demo.gif)
+
+
 ### How to Setup
 
 You need the following information
